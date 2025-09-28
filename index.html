@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chaos Arena</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* ========== Load Yoruka font ========== */
+    @font-face {
+      font-family: 'Yoruka';
+      src: url('assets/fonts/Yoruka-1j9rL.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-black: #000000;
+    }
+
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: 'Yoruka', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background-color: var(--bg-black);
+      color: #fff;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      position: relative;
+
+      /* Small, subtle white PS symbols as static background */
+      background-image:
+        /* Tiny texture dots */
+        radial-gradient(circle at 15% 15%, rgba(255,255,255,0.03) 0%, transparent 50%),
+
+        /* Main pattern: small white X, O, △, □ */
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3C!-- X --%3E%3Cline x1='30' y1='30' x2='50' y2='50' stroke='%23ffffff' stroke-width='1' opacity='0.12'/%3E%3Cline x1='50' y1='30' x2='30' y2='50' stroke='%23ffffff' stroke-width='1' opacity='0.12'/%3E%3C!-- O --%3E%3Ccircle cx='100' cy='40' r='10' fill='none' stroke='%23ffffff' stroke-width='1' opacity='0.12'/%3E%3C!-- Triangle --%3E%3Cpath d='M70 90 L85 65 L55 65 Z' fill='none' stroke='%23ffffff' stroke-width='1' opacity='0.12'/%3E%3C!-- Square --%3E%3Crect x='120' y='100' width='20' height='20' fill='none' stroke='%23ffffff' stroke-width='1' opacity='0.12'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 180px 180px; /* larger tile = less dense */
+      background-attachment: fixed;
+    }
+
+    /* Panels & thin edges */
+    .thin-edge {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.22));
+      color: #fff;
+    }
+    .panel {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: #050505;
+      color: #fff;
+    }
+    input.thin-edge {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: #070707;
+      color: #fff;
+    }
+    .muted { color: rgba(255,255,255,0.86); }
+
+    main { padding-bottom: 110px; }
+    footer { border-top: 1px solid rgba(255,255,255,0.06); }
+
+    /* Image square fill */
+    .img-square {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: #0b0b0b;
+    }
+
+    @media (min-width: 640px) {
+      .max-mobile { max-width: 420px; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body class="relative">
+
+  <!-- Header -->
+  <header class="flex justify-between items-center px-4 py-3 max-mobile">
+    <div class="flex items-center gap-2 thin-edge rounded-md px-3 py-1 cursor-pointer" onclick="openWallet()">
+      <img src="assets/wallet.png" alt="Wallet" class="w-6 h-6 object-contain" />
+      <div class="font-semibold">₹ 0</div>
+    </div>
+
+    <div id="authArea" class="flex items-center gap-2">
+      <button class="px-3 py-1 text-sm thin-edge rounded" onclick="openSignup()">Sign Up</button>
+      <button class="px-3 py-1 text-sm thin-edge rounded" onclick="openLogin()">Log In</button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="px-4 max-mobile">
+    <div class="text-center my-4">
+      <h1 class="text-2xl font-bold tracking-tight">Chaos Arena</h1>
+      <p class="text-xs muted">カオスアリーナ</p>
+    </div>
+
+    <!-- Time + Search -->
+    <div class="flex items-center justify-between mb-4 gap-3">
+      <div>
+        <div id="time" class="font-semibold">--:--</div>
+        <div id="date" class="text-xs muted">--</div>
+      </div>
+      <input id="search" type="text" placeholder="Search..." class="w-1/2 rounded-full px-3 py-1 text-sm thin-edge" />
+    </div>
+
+    <!-- Cards -->
+    <div class="flex flex-col gap-4 mb-6">
+      <div class="panel rounded-2xl p-5 flex items-center justify-between cursor-pointer" onclick="comingSoon('Challenges')">
+        <div><div class="text-sm muted">Challenges</div><div class="text-lg font-bold">Open Matches</div></div>
+        <img src="assets/challange.jpg" class="img-square" alt="Challenges" />
+      </div>
+
+      <div class="panel rounded-2xl p-5 flex items-center justify-between cursor-pointer" onclick="comingSoon('Create Challenge')">
+        <div><div class="text-sm muted">Create</div><div class="text-lg font-bold">Create Challenge</div></div>
+        <img src="assets/create.jpg" class="img-square" alt="Create" />
+      </div>
+
+      <div class="panel rounded-2xl p-5 flex items-center justify-between cursor-pointer" onclick="comingSoon('Tournament')">
+        <div><div class="text-sm muted">Tournament</div><div class="text-lg font-bold">Brackets</div></div>
+        <img src="assets/tournament.jpg" class="img-square" alt="Tournament" />
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="mb-6">
+      <h2 class="text-lg font-bold mb-2">Leaderboard</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="thin-edge rounded-xl p-4 text-center">#1 Player</div>
+        <div class="thin-edge rounded-xl p-4 text-center">#2 Player</div>
+        <div class="thin-edge rounded-xl p-4 text-center">#3 Player</div>
+        <div class="thin-edge rounded-xl p-4 text-center">#4 Player</div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="mb-6">
+      <div class="panel rounded-2xl p-4 cursor-pointer" onclick="comingSoon('History')">
+        <div class="flex items-center justify-between">
+          <div><div class="text-sm muted">History</div><div class="text-lg font-bold">All past matches & transactions</div></div>
+          <div class="text-xs muted">View</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Other features -->
+    <div class="mb-4 space-y-4">
+      <div class="panel rounded-2xl p-4" onclick="comingSoon('Challenges (Important)')">
+        <div class="flex items-center justify-between">
+          <div><div class="text-sm muted">Feature</div><div class="text-lg font-bold">Challenges (Important)</div></div>
+          <div class="img-square thin-edge"></div>
+        </div>
+      </div>
+      <div class="panel rounded-2xl p-4" onclick="comingSoon('Create Challenge (Important)')">
+        <div class="flex items-center justify-between">
+          <div><div class="text-sm muted">Feature</div><div class="text-lg font-bold">Create Challenge (Important)</div></div>
+          <div class="img-square thin-edge"></div>
+        </div>
+      </div>
+      <div class="panel rounded-2xl p-4" onclick="comingSoon('Tournament (Important)')">
+        <div class="flex items-center justify-between">
+          <div><div class="text-sm muted">Feature</div><div class="text-lg font-bold">Tournament (Important)</div></div>
+          <div class="img-square thin-edge"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2-per-row -->
+    <div class="mb-4 grid grid-cols-2 gap-4">
+      <div class="panel rounded-xl p-4 flex items-center gap-3" onclick="comingSoon('Wallet')">
+        <div class="img-square thin-edge"></div>
+        <div><div class="text-sm muted">Finance</div><div class="font-semibold">Wallet</div></div>
+      </div>
+      <div class="panel rounded-xl p-4 flex items-center gap-3" onclick="comingSoon('Leaderboard (Short)')">
+        <div class="img-square thin-edge"></div>
+        <div><div class="text-sm muted">Competition</div><div class="font-semibold">Leaderboard</div></div>
+      </div>
+    </div>
+
+    <!-- 3-per-row -->
+    <div class="mb-6 grid grid-cols-3 gap-3">
+      <div class="panel rounded-lg p-3 text-center" onclick="comingSoon('Profile')">Profile</div>
+      <div class="panel rounded-lg p-3 text-center" onclick="comingSoon('Search')">Search</div>
+      <div class="panel rounded-lg p-3 text-center" onclick="comingSoon('Achievements')">Achievements</div>
+    </div>
+  </main>
+
+  <!-- Bottom Nav -->
+  <footer class="fixed bottom-0 left-0 right-0 bg-black/30 py-2 flex justify-around max-mobile">
+    <button class="text-xl">🏠</button>
+    <button class="text-xl">⚔️</button>
+    <button class="text-xl">💰</button>
+    <button class="text-xl">🏆</button>
+    <button class="text-xl">👤</button>
+  </footer>
+
+  <!-- Modals -->
+  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/70" onclick="closeModal()"></div>
+    <div class="relative w-[92%] max-w-sm mx-auto">
+      <div class="rounded-xl thin-edge p-4 bg-gradient-to-b from-[#0b0b0b] to-[#000]">
+        <div id="modalContent" class="text-center text-white"></div>
+        <div class="mt-4 flex justify-center">
+          <button class="px-4 py-2 rounded-md border thin-edge" onclick="closeModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="walletModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+    <div class="absolute inset-0 bg-black/70" onclick="closeWallet()"></div>
+    <div class="relative w-[92%] max-w-sm mx-auto">
+      <div class="rounded-xl thin-edge p-4 bg-gradient-to-b from-[#0b0b0b] to-[#000]">
+        <h2 class="text-lg font-bold mb-2">Wallet</h2>
+        <p class="muted mb-4">Your balance: ₹0</p>
+        <div class="flex justify-center gap-2">
+          <button class="px-4 py-2 rounded-md border thin-edge">Deposit</button>
+          <button class="px-4 py-2 rounded-md border thin-edge">Withdraw</button>
+        </div>
+        <div class="mt-4 flex justify-center">
+          <button class="px-4 py-2 rounded-md border thin-edge" onclick="closeWallet()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Clock
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('time').textContent = now.toLocaleTimeString();
+      document.getElementById('date').textContent = now.toLocaleDateString();
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // Modal helpers
+    function comingSoon(name) {
+      document.getElementById('modalContent').innerHTML = `<strong>${name}</strong><div class="mt-2 muted">Coming Soon</div>`;
+      document.getElementById('modal').classList.remove('hidden');
+      document.getElementById('modal').classList.add('flex');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('modal').classList.remove('flex');
+    }
+
+    function openWallet() {
+      document.getElementById('walletModal').classList.remove('hidden');
+      document.getElementById('walletModal').classList.add('flex');
+    }
+
+    function closeWallet() {
+      document.getElementById('walletModal').classList.add('hidden');
+      document.getElementById('walletModal').classList.remove('flex');
+    }
+
+    function openLogin() { comingSoon('Log In'); }
+    function openSignup() { comingSoon('Sign Up'); }
+  </script>
+</body>
+</html>
